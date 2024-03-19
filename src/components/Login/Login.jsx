@@ -10,8 +10,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 const Login = () => {
 
-    const { user, login, googleLogin } = useContext(AuthContext);
+    const { user, login, googleLogin, forgetPassword, emailVerification } = useContext(AuthContext);
     const [error, setError] = useState(null);
+    const [email, setEmail] = useState(null);
+    const [resetMessage, setResetMessage] = useState(null);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -39,6 +41,14 @@ const Login = () => {
             .then((result) => {
                 const user = result.user;
                 console.log(user)
+
+                // Check if email is verified
+                if (!user.emailVerified) {
+                    emailVerification(); // Send verification email
+                    setError('Please verify your email address.');
+                    return; // Prevent further actions or navigation
+                }
+
                 form.reset()
                 navigate(from, { replace: true })
             })
@@ -48,6 +58,21 @@ const Login = () => {
 
     }
 
+    const getEmail = (e) => {
+        const email = e.target.value;
+        setEmail(email);
+    }
+
+
+    const handleReset = () => {
+        forgetPassword(email)
+            .then(() => {
+                setResetMessage('Password reset link sent to your email')
+            })
+            .catch((error) => {
+                setError(error.message)
+            })
+    }
 
     return (
         <div>
@@ -87,7 +112,7 @@ const Login = () => {
                                 <label className="label">
                                     <span className="label-text">Email</span>
                                 </label>
-                                <input type="email" placeholder="Email" className="input input-bordered" name="email" required />
+                                <input type="email" placeholder="Email" className="input input-bordered" name="email" required onBlur={getEmail} />
                             </div>
                             <div className="form-control">
                                 <label className="label">
@@ -95,13 +120,14 @@ const Login = () => {
                                 </label>
                                 <input type="password" placeholder="Password" className="input input-bordered" name="password" required />
                                 <label className="label">
-                                    <a href="#" className="label-text-alt link link-hover">Forgot password?</a>
+                                    <button onClick={handleReset} className="label-text-alt link link-hover bg-transparent hover:bg-transparent">Forgot password?</button>
                                 </label>
                             </div>
                             <div className="form-control mt-6 flex gap-3 flex-col">
                                 <button className="btn bg-amber-500 hover:bg-amber-400" name="submit">Login</button>
                                 <button className="btn bg-gray-200" onClick={handleGoogleSubmit}><img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" className="w-6 h-6" />Login with Google</button>
                                 <p className='text-red-500'>{error}</p>
+                                {resetMessage ? <p className='text-green-500'>{resetMessage}</p> : ""}
                                 <p className='mt-4'>Not a member? <Link to={'/signup'} className='text-amber-500'>Sign Up here</Link> </p>
                             </div>
                         </form>

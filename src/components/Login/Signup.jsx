@@ -13,7 +13,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const Signup = () => {
 
-    const { user, createAccount, googleLogin } = useContext(AuthContext);
+    const { user, createAccount, googleLogin, emailVerification } = useContext(AuthContext);
     const notify = () => toast("Sign Up Successful!");
 
 
@@ -66,6 +66,15 @@ const Signup = () => {
 
                 const user = result.user;
                 console.log(user)
+
+
+                // Check if email is verified
+                if (!user.emailVerified) {
+                    emailVerification(); // Send verification email
+                    setError('Please verify your email address.');
+                    return; // Prevent further actions or navigation
+                }
+
                 form.reset();
                 setError(null);
                 notify();
